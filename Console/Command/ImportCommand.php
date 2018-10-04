@@ -78,19 +78,16 @@ class ImportCommand extends Command
 
         } catch (FileNotFoundException $e) {
             $output->writeln('<error>File not found.</error>');
-
+            $this->outputErrors($import, $output);
+            throw $e;
         } catch (\InvalidArgumentException $e) {
             $output->writeln('<error>Invalid source.</error>');
             $output->writeln("Log trace:");
             $output->writeln($import->getFormattedLogTrace());
+            $this->outputErrors($import, $output);
+            throw $e;
         }
-        $errors = $import->getErrors();
-        if ($errors) {
-            $output->writeln('<error>The following errors were encountered during the import:</error>');
-            foreach ($errors as $error) {
-                $output->writeln('<error>' . $error->getErrorMessage() . ' - ' .$error->getErrorDescription() . '</error>');
-            }
-        }
+        $this->outputErrors($import, $output);
     }
 
     /**
@@ -100,6 +97,24 @@ class ImportCommand extends Command
     {
         $this->state->setAreaCode('adminhtml');
         return $this->objectManager->create('CedricBlondeau\CatalogImportCommand\Model\Import');
+    }
+
+    /**
+     * Output the import errors
+     *
+     * @param [type] $import
+     * @param OutputInterface $output
+     * @return void
+     */
+    protected function outputErrors($import, OutputInterface $output)
+    {
+        $errors = $import->getErrors();
+        if ($errors) {
+            $output->writeln('<error>The following errors were encountered during the import:</error>');
+            foreach ($errors as $error) {
+                $output->writeln('<error>' . $error->getErrorMessage() . ' - ' .$error->getErrorDescription() . '</error>');
+            }
+        }
     }
 }
 
